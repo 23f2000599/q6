@@ -1,28 +1,23 @@
 from fastapi import FastAPI, Query
-from fastapi.middleware.cors import CORSMiddleware
 import json
 
 app = FastAPI()
 
-# Enable CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["GET"],
-    allow_headers=["*"],
-)
-
-# Load marks data
-with open("q-vercel-python.json", "r") as file:  
+# Load the data (make sure the correct path to your JSON file is used)
+with open("api/q-vercel-python.json", "r") as file:
     marks_list = json.load(file)
-    # print(marks_list)
 
-# Convert list to a dictionary for fast lookup
+# Convert the list to a dictionary for faster lookups
 marks_data = {entry["name"]: entry["marks"] for entry in marks_list}
 
 @app.get("/api")
-def get_marks(name: list[str] = Query([])):
-    result = [marks_data.get(n, None) for n in name]
-    return {"marks": result}
+def get_marks(name: str = Query(...)):
+    # Fetch the marks for the provided name
+    marks = marks_data.get(name)
+    
+    # If no marks found, return a message indicating that
+    if marks is None:
+        return {"message": f"No data available for name: {name}"}
+    
+    return {"marks": [marks]}
 
